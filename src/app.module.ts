@@ -5,6 +5,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { PropertiesModule } from './properties/properties.module';
 import { ContactsModule } from './contacts/contacts.module';
+import { AuthModule } from './auth/auth.module'; // ← NUEVO
 import { getDatabaseConfig } from './config/database.config';
 
 @Module({
@@ -23,6 +24,7 @@ import { getDatabaseConfig } from './config/database.config';
     }),
     PropertiesModule,
     ContactsModule,
+    AuthModule, // ← NUEVO
   ],
 })
 export class AppModule { }

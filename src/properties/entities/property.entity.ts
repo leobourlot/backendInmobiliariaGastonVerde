@@ -19,18 +19,20 @@ export class Property {
     @Column('text')
     description: string;
 
-    @Column({
-        type: 'enum',
-        enum: ['sale', 'rent'],
-        default: 'sale',
-    })
-    transactionType: string;
+    @Column('simple-array', { default: 'sale' })
+    transactionType: string[];
 
     @Column({ length: 100 })
     type: string; // Casa, Departamento, Terreno, Galpón
 
-    @Column('decimal', { precision: 12, scale: 2 })
-    price: number;
+    // @Column('decimal', { precision: 12, scale: 2 })
+    // price: number;
+
+    @Column('decimal', { precision: 12, scale: 2, nullable: true })
+    salePrice?: number;
+
+    @Column('decimal', { precision: 12, scale: 2, nullable: true })
+    rentPrice?: number;
 
     @Column({ length: 255 })
     location: string;
@@ -44,14 +46,14 @@ export class Property {
     @Column('decimal', { precision: 10, scale: 2 })
     area: number;
 
-    @Column('json', { nullable: true })
-    features: string[];
+    // @Column('json', { nullable: true })
+    // features: string[];
 
     @Column({ default: true })
     isActive: boolean;
 
-    @Column({ default: false })
-    isFeatured: boolean;
+    // @Column({ default: false })
+    // isFeatured: boolean;
 
     @OneToMany(() => PropertyMedia, (media) => media.property, {
         cascade: true,

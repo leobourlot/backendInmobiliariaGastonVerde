@@ -7,6 +7,7 @@ import {
     IsOptional,
     MinLength,
     Min,
+    ValidateIf,
 } from 'class-validator';
 
 export class CreatePropertyDto {
@@ -18,15 +19,22 @@ export class CreatePropertyDto {
     @MinLength(20)
     description: string;
 
-    @IsEnum(['sale', 'rent'])
-    transactionType: string;
+    @IsArray()
+    @IsEnum(['sale', 'rent'], { each: true })
+    transactionType: string[];
 
     @IsString()
     type: string;
 
+    @ValidateIf((o) => o.transactionType.includes('sale'))
     @IsNumber()
     @Min(0)
-    price: number;
+    salePrice?: number;
+    
+    @ValidateIf((o) => o.transactionType.includes('rent'))
+    @IsNumber()
+    @Min(0)
+    rentPrice?: number;
 
     @IsString()
     location: string;
@@ -43,15 +51,15 @@ export class CreatePropertyDto {
     @Min(0)
     area: number;
 
-    @IsArray()
-    @IsOptional()
-    features?: string[];
+    // @IsArray()
+    // @IsOptional()
+    // features?: string[];
 
     @IsBoolean()
     @IsOptional()
     isActive?: boolean;
 
-    @IsBoolean()
-    @IsOptional()
-    isFeatured?: boolean;
+    // @IsBoolean()
+    // @IsOptional()
+    // isFeatured?: boolean;
 }

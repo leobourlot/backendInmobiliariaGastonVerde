@@ -28,7 +28,9 @@ export class PropertiesService {
     }): Promise<Property[]> {
         const query = this.propertyRepository
             .createQueryBuilder('property')
-            .where('property.isActive = :isActive', { isActive: true });
+            .leftJoinAndSelect('property.media', 'media') // IMPORTANTE: Cargar la relación media
+            .where('property.isActive = :isActive', { isActive: true })
+            .orderBy('media.order', 'ASC'); // Ordenar media por orden
 
         if (filters?.transactionType && filters.transactionType !== 'all') {
             query.andWhere('property.transactionType = :transactionType', {
@@ -51,14 +53,19 @@ export class PropertiesService {
                 maxPrice: filters.maxPrice,
             });
         }
-
+        
         return await query.orderBy('property.createdAt', 'DESC').getMany();
     }
 
     async findOne(id: number): Promise<Property> {
         const property = await this.propertyRepository.findOne({
             where: { id },
-            relations: ['media'],
+            relations: ['media'], // IMPORTANTE: Cargar la relación media
+            order: {
+                media: {
+                    order: 'ASC', // Ordenar media por orden
+                },
+            },
         });
 
         if (!property) {
@@ -73,7 +80,9 @@ export class PropertiesService {
         updatePropertyDto: UpdatePropertyDto,
     ): Promise<Property> {
         const property = await this.findOne(id);
+        console.log('propiedad antes de object es: ', property)
         Object.assign(property, updatePropertyDto);
+        console.log('Propiedad actualizada es: ', property);
         return await this.propertyRepository.save(property);
     }
 
@@ -87,12 +96,22 @@ export class PropertiesService {
         files: Express.Multer.File[],
     ): Promise<PropertyMedia[]> {
         const property = await this.findOne(propertyId);
+
+        // Obtener el orden máximo actual
+        const existingMedia = await this.mediaRepository.find({
+            where: { propertyId },
+            order: { order: 'DESC' },
+            take: 1,
+        });
+
+        const startOrder = existingMedia.length > 0 ? existingMedia[0].order + 1 : 0;
+
         const mediaEntities = files.map((file, index) => {
             const media = new PropertyMedia();
             media.property = property;
             media.url = `/uploads/properties/${file.filename}`;
             media.type = file.mimetype.startsWith('video') ? 'video' : 'image';
-            media.order = index;
+            media.order = startOrder + index;
             return media;
         });
 

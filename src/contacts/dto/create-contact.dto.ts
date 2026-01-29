@@ -23,7 +23,7 @@ export class CreateContactDto {
     @IsOptional()
     message?: string;
 
-    @IsEnum(['sell', 'rent', 'invest'])
+    @IsEnum(['venta', 'alquiler', 'inversion'])
     @IsOptional()
     serviceType?: string;
 
