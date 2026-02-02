@@ -16,6 +16,7 @@ export class AuthController {
     constructor(private readonly authService: AuthService) { }
 
     @Post('register')
+    @UseGuards(JwtAuthGuard)
     register(@Body() registerDto: RegisterDto) {
         return this.authService.register(registerDto);
     }
