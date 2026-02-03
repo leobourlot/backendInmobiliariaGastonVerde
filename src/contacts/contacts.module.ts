@@ -3,7 +3,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ContactsService } from './contacts.service';
 import { ContactsController } from './contacts.controller';
 import { Contact } from './entities/contact.entity';
-import { AuthModule } from '../auth/auth.module'; 
+import { AuthModule } from '../auth/auth.module';
+import { EmailService } from '../email/email.service';
 
 @Module({
     imports: [
@@ -11,7 +12,7 @@ import { AuthModule } from '../auth/auth.module';
         AuthModule,
     ],
     controllers: [ContactsController],
-    providers: [ContactsService],
+    providers: [ContactsService, EmailService],
     exports: [ContactsService],
 })
 export class ContactsModule { }

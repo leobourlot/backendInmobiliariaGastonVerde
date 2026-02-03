@@ -21,7 +21,7 @@ export class EmailService {
     }
 
     async sendContactEmail(contactData: any) {
-        
+        console.log('email llamado')
         const mailOptions = {
             from: process.env.EMAIL_USER,
             to: 'leobourlot@gmail.com',

@@ -10,16 +10,23 @@ import {
     UseGuards, // ← NUEVO
 } from '@nestjs/common';
 import { ContactsService } from './contacts.service';
+import { EmailService } from '../email/email.service';
 import { CreateContactDto } from './dto/create-contact.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'; // ← NUEVO
 
 @Controller('contacts')
 export class ContactsController {
-    constructor(private readonly contactsService: ContactsService) { }
+    constructor(
+        private readonly contactsService: ContactsService,
+        private readonly emailService: EmailService,
+    ) { }
 
     @Post()
-    create(@Body() createContactDto: CreateContactDto) {
-        return this.contactsService.create(createContactDto);
+    async create(@Body() createContactDto: CreateContactDto) {
+        const contact = await this.contactsService.create(createContactDto);
+        // Enviar email al recibir el contacto
+        await this.emailService.sendContactEmail(createContactDto);
+        return contact;
     }
 
     @Get()
