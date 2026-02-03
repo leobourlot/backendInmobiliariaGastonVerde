@@ -165,7 +165,7 @@ export class EmailService {
         <div class="content">
             <p class="greeting">¡Hola! Has recibido una nueva solicitud de asesoría inmobiliaria.</p>
 
-            <div class="service-badge">${contactData.serviceType}</div>
+            ${contactData.serviceType ? `<div class="service-badge">${contactData.serviceType}</div>` : ''}
 
             <div class="info-box">
                 <div class="info-row">
@@ -183,10 +183,12 @@ export class EmailService {
                     <span class="info-value">${contactData.phone}</span>
                 </div>
 
+                ${contactData.serviceType ? `
                 <div class="info-row">
                     <span class="info-label">Servicio Solicitado: </span>
-                    <span class="info-value">${this.getServiceName(contactData.serviceType) || ''}</span>
+                    <span class="info-value">${this.getServiceName(contactData.serviceType)}</span>
                 </div>
+                ` : ''}
             </div>
 
             ${contactData.message ? `
