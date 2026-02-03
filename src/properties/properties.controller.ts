@@ -43,6 +43,21 @@ export class PropertiesController {
             maxPrice,
         });
     }
+    
+    @Get('inactives')
+    findAllInactives(
+        @Query('transactionType') transactionType?: string,
+        @Query('type') type?: string,
+        @Query('minPrice') minPrice?: number,
+        @Query('maxPrice') maxPrice?: number,
+    ) {
+        return this.propertiesService.findAllInactives({
+            transactionType,
+            type,
+            minPrice,
+            maxPrice,
+        });
+    }
 
     @Get(':id')
     findOne(@Param('id', ParseIntPipe) id: number) {

@@ -56,6 +56,43 @@ export class PropertiesService {
         
         return await query.orderBy('property.createdAt', 'DESC').getMany();
     }
+    
+    async findAllInactives(filters?: {
+        transactionType?: string;
+        type?: string;
+        minPrice?: number;
+        maxPrice?: number;
+    }): Promise<Property[]> {
+        const query = this.propertyRepository
+            .createQueryBuilder('property')
+            .leftJoinAndSelect('property.media', 'media') // IMPORTANTE: Cargar la relación media
+            .where('property.isActive = :isActive', { isActive: false })
+            .orderBy('media.order', 'ASC'); // Ordenar media por orden
+
+        if (filters?.transactionType && filters.transactionType !== 'all') {
+            query.andWhere('property.transactionType = :transactionType', {
+                transactionType: filters.transactionType,
+            });
+        }
+
+        if (filters?.type && filters.type !== 'all') {
+            query.andWhere('property.type = :type', { type: filters.type });
+        }
+
+        if (filters?.minPrice) {
+            query.andWhere('property.price >= :minPrice', {
+                minPrice: filters.minPrice,
+            });
+        }
+
+        if (filters?.maxPrice) {
+            query.andWhere('property.price <= :maxPrice', {
+                maxPrice: filters.maxPrice,
+            });
+        }
+        
+        return await query.orderBy('property.createdAt', 'DESC').getMany();
+    }
 
     async findOne(id: number): Promise<Property> {
         const property = await this.propertyRepository.findOne({
