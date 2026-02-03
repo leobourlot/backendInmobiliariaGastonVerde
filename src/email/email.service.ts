@@ -20,11 +20,10 @@ export class EmailService {
         });
     }
 
-    async sendContactEmail(contactData: any) {
-        console.log('email llamado')
+    async sendContactEmail(contactData: any) {        
         const mailOptions = {
             from: process.env.EMAIL_USER,
-            to: 'leobourlot@gmail.com',
+            to: 'gastonverdeinmobiliaria@gmail.com',
             subject: `Nueva consulta de ${contactData.serviceType || 'servicio'}`,
             html: `
 <!DOCTYPE html>
