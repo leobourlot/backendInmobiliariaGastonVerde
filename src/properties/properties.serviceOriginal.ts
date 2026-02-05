@@ -20,36 +20,21 @@ export class PropertiesService {
         return await this.propertyRepository.save(property);
     }
 
-    // MÉTODO ACTUALIZADO CON PAGINACIÓN
     async findAll(filters?: {
         transactionType?: string;
         type?: string;
         minPrice?: number;
         maxPrice?: number;
-        page?: number;        // NUEVO
-        limit?: number;       // NUEVO
-    }): Promise<{
-        data: Property[];
-        total: number;
-        page: number;
-        limit: number;
-        totalPages: number;
-    }> {
-        const page = filters?.page || 1;
-        const limit = filters?.limit || 10;
-        const skip = (page - 1) * limit;
-
+    }): Promise<Property[]> {
         const query = this.propertyRepository
             .createQueryBuilder('property')
-            .leftJoinAndSelect('property.media', 'media')
+            .leftJoinAndSelect('property.media', 'media') // IMPORTANTE: Cargar la relación media
             .where('property.isActive = :isActive', { isActive: true })
-            .orderBy('property.createdAt', 'DESC')  // Más recientes primero
-            .addOrderBy('media.order', 'ASC');      // Ordenar media
+            .orderBy('media.order', 'ASC'); // Ordenar media por orden
 
-        // Filtros existentes
         if (filters?.transactionType && filters.transactionType !== 'all') {
-            query.andWhere('property.transactionType LIKE :transactionType', {
-                transactionType: `%${filters.transactionType}%`,
+            query.andWhere('property.transactionType = :transactionType', {
+                transactionType: filters.transactionType,
             });
         }
 
@@ -68,31 +53,54 @@ export class PropertiesService {
                 maxPrice: filters.maxPrice,
             });
         }
+        
+        return await query.orderBy('property.createdAt', 'DESC').getMany();
+    }
+    
+    async findAllInactives(filters?: {
+        transactionType?: string;
+        type?: string;
+        minPrice?: number;
+        maxPrice?: number;
+    }): Promise<Property[]> {
+        const query = this.propertyRepository
+            .createQueryBuilder('property')
+            .leftJoinAndSelect('property.media', 'media') // IMPORTANTE: Cargar la relación media
+            .where('property.isActive = :isActive', { isActive: false })
+            .orderBy('media.order', 'ASC'); // Ordenar media por orden
 
-        // Obtener total ANTES de aplicar paginación
-        const total = await query.getCount();
+        if (filters?.transactionType && filters.transactionType !== 'all') {
+            query.andWhere('property.transactionType = :transactionType', {
+                transactionType: filters.transactionType,
+            });
+        }
 
-        // Aplicar paginación
-        query.skip(skip).take(limit);
+        if (filters?.type && filters.type !== 'all') {
+            query.andWhere('property.type = :type', { type: filters.type });
+        }
 
-        const data = await query.getMany();
+        if (filters?.minPrice) {
+            query.andWhere('property.price >= :minPrice', {
+                minPrice: filters.minPrice,
+            });
+        }
 
-        return {
-            data,
-            total,
-            page,
-            limit,
-            totalPages: Math.ceil(total / limit),
-        };
+        if (filters?.maxPrice) {
+            query.andWhere('property.price <= :maxPrice', {
+                maxPrice: filters.maxPrice,
+            });
+        }
+        
+        return await query.orderBy('property.createdAt', 'DESC').getMany();
     }
 
     async findOne(id: number): Promise<Property> {
         const property = await this.propertyRepository.findOne({
             where: { id },
-            relations: ['media'],
+            relations: ['media'], // IMPORTANTE: Cargar la relación media
             order: {
                 media: {
-                    order: 'ASC',
+                    order: 'ASC', // Ordenar media por orden
                 },
             },
         });
@@ -109,7 +117,9 @@ export class PropertiesService {
         updatePropertyDto: UpdatePropertyDto,
     ): Promise<Property> {
         const property = await this.findOne(id);
+        console.log('propiedad antes de object es: ', property)
         Object.assign(property, updatePropertyDto);
+        console.log('Propiedad actualizada es: ', property);
         return await this.propertyRepository.save(property);
     }
 
@@ -124,6 +134,7 @@ export class PropertiesService {
     ): Promise<PropertyMedia[]> {
         const property = await this.findOne(propertyId);
 
+        // Obtener el orden máximo actual
         const existingMedia = await this.mediaRepository.find({
             where: { propertyId },
             order: { order: 'DESC' },
