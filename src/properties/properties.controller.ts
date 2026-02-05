@@ -29,21 +29,33 @@ export class PropertiesController {
         return this.propertiesService.create(createPropertyDto);
     }
 
-    // MÉTODO ACTUALIZADO CON PAGINACIÓN
     @Get()
-    findAll(
+    async findAll(
         @Query('transactionType') transactionType?: string,
         @Query('type') type?: string,
         @Query('minPrice') minPrice?: number,
         @Query('maxPrice') maxPrice?: number,
-        @Query('page') page?: string,        // NUEVO
-        @Query('limit') limit?: string,      // NUEVO
+        @Query('page') page?: string,
+        @Query('limit') limit?: string,
     ) {
-        // Convertir a números con valores por defecto
-        const pageNumber = page ? parseInt(page, 10) : 1;
-        const limitNumber = limit ? parseInt(limit, 10) : 10;
+        console.log('🌐 GET /properties - Query params:', {
+            transactionType,
+            type,
+            minPrice,
+            maxPrice,
+            page,
+            limit
+        });
 
-        return this.propertiesService.findAll({
+        const pageNumber = page ? parseInt(page, 10) : 1;
+        const limitNumber = limit ? parseInt(limit, 10) : 6;
+
+        console.log('🔢 Valores parseados:', {
+            pageNumber,
+            limitNumber
+        });
+
+        const result = await this.propertiesService.findAll({
             transactionType,
             type,
             minPrice,
@@ -51,6 +63,16 @@ export class PropertiesController {
             page: pageNumber,
             limit: limitNumber,
         });
+
+        console.log('📤 Respuesta del servicio:', {
+            totalPropiedades: result.data.length,
+            total: result.total,
+            page: result.page,
+            limit: result.limit,
+            totalPages: result.totalPages
+        });
+
+        return result;
     }
 
     @Get(':id')

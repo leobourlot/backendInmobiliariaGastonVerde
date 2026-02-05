@@ -20,14 +20,13 @@ export class PropertiesService {
         return await this.propertyRepository.save(property);
     }
 
-    // MÉTODO ACTUALIZADO CON PAGINACIÓN
     async findAll(filters?: {
         transactionType?: string;
         type?: string;
         minPrice?: number;
         maxPrice?: number;
-        page?: number;        // NUEVO
-        limit?: number;       // NUEVO
+        page?: number;
+        limit?: number;
     }): Promise<{
         data: Property[];
         total: number;
@@ -35,19 +34,25 @@ export class PropertiesService {
         limit: number;
         totalPages: number;
     }> {
+        // Configurar paginación con valores por defecto
         const page = filters?.page || 1;
-        const limit = filters?.limit || 10;
+        const limit = filters?.limit || 6;
         const skip = (page - 1) * limit;
 
+        console.log('🔍 Filtros recibidos:', filters);
+        console.log('📄 Paginación: page=', page, 'limit=', limit, 'skip=', skip);
+
+        // Construir query base
         const query = this.propertyRepository
             .createQueryBuilder('property')
             .leftJoinAndSelect('property.media', 'media')
             .where('property.isActive = :isActive', { isActive: true })
-            .orderBy('property.createdAt', 'DESC')  // Más recientes primero
-            .addOrderBy('media.order', 'ASC');      // Ordenar media
+            .orderBy('property.createdAt', 'DESC')
+            .addOrderBy('media.order', 'ASC');
 
-        // Filtros existentes
+        // Aplicar filtros si existen
         if (filters?.transactionType && filters.transactionType !== 'all') {
+            // Buscar en el array usando LIKE
             query.andWhere('property.transactionType LIKE :transactionType', {
                 transactionType: `%${filters.transactionType}%`,
             });
@@ -58,31 +63,40 @@ export class PropertiesService {
         }
 
         if (filters?.minPrice) {
-            query.andWhere('property.price >= :minPrice', {
-                minPrice: filters.minPrice,
-            });
+            query.andWhere(
+                '(property.salePrice >= :minPrice OR property.rentPrice >= :minPrice)',
+                { minPrice: filters.minPrice }
+            );
         }
 
         if (filters?.maxPrice) {
-            query.andWhere('property.price <= :maxPrice', {
-                maxPrice: filters.maxPrice,
-            });
+            query.andWhere(
+                '(property.salePrice <= :maxPrice OR property.rentPrice <= :maxPrice)',
+                { maxPrice: filters.maxPrice }
+            );
         }
 
-        // Obtener total ANTES de aplicar paginación
+        // Obtener el total de resultados (antes de paginar)
         const total = await query.getCount();
+        console.log('📊 Total de propiedades encontradas:', total);
 
         // Aplicar paginación
-        query.skip(skip).take(limit);
+        const data = await query
+            .skip(skip)
+            .take(limit)
+            .getMany();
 
-        const data = await query.getMany();
+        console.log('✅ Propiedades devueltas:', data.length);
 
+        const totalPages = Math.ceil(total / limit);
+
+        // IMPORTANTE: Retornar el objeto completo con la estructura correcta
         return {
             data,
             total,
             page,
             limit,
-            totalPages: Math.ceil(total / limit),
+            totalPages,
         };
     }
 
