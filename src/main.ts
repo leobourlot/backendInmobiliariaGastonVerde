@@ -7,7 +7,7 @@ async function bootstrap() {
 
   // Configurar CORS para tu frontend
   app.enableCors({
-    origin: ['http://localhost:3005', 'https://gastonverdeinmobiliaria.com.ar', 'https://www.gastonverdeinmobiliaria.com.ar'], // URL de tu frontend React    
+    origin: ['http://localhost:3005', 'https://gastonverdeinmobiliaria.com.ar', 'https://www.gastonverdeinmobiliaria.com.ar', 'https://gastonverde.srv805858.hstgr.cloud'], // URL de tu frontend React    
     credentials: true,
   });
 
